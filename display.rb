@@ -14,7 +14,7 @@ class Display
 
   def render
     # MAP THE TOP LABELS TO LETTERS
-    puts @cursor.cursor_pos
+    # puts @cursor.cursor_pos
     print "   0  1  2  3  4  5  6  7\n"
     @board.grid.each_with_index do |row, i|
       print "#{i}  "

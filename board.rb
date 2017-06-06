@@ -21,6 +21,16 @@ class Board
     @grid
   end
 
+  def [](pos)
+    row, col = pos
+    @grid[row][col]
+  end
+
+  def []=(pos, value)
+    row, col = pos
+    @grid[row][col] = value
+  end
+
   def move_piece(start_pos, end_pos)
 
     # CHANGE TO SYNTACTIC SUGAR INDEXING
@@ -49,6 +59,7 @@ if __FILE__ == $PROGRAM_NAME
   brd = Board.new
   disp = Display.new(brd)
   while true
+    system 'clear'
     disp.render
     disp.cursor.get_input
     # disp.render
