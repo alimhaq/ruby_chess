@@ -35,8 +35,10 @@ class Cursor
   attr_reader :cursor_pos, :board
 
   def initialize(cursor_pos, board)
+    @toggle = false
     @cursor_pos = cursor_pos
     @board = board
+    @selected_piece = []
   end
 
   def get_input
@@ -78,6 +80,7 @@ class Cursor
   def handle_key(key)
     case key
     when :return, :space
+      select_drop
       @cursor_pos
     when :left, :right, :up, :down
       update_pos(MOVES[key])
@@ -95,7 +98,16 @@ class Cursor
     if @board.in_bounds?([row, col])
       @cursor_pos[0], @cursor_pos[1] = row, col
     end
+  end
 
-
+  def select_drop
+    return if @board[@cursor_pos].is_a?(NullPiece) && @selected_piece.empty?
+    if @selected_piece.empty?
+      @selected_piece << board[@cursor_pos]
+    elsif @selected_piece[0].moves.include?(@cursor_pos)
+      board[@selected_piece[0].pos] = NullPiece.new
+      board[@cursor_pos] = @selected_piece.pop
+      board[@cursor_pos].pos = @cursor_pos.dup
+    end
   end
 end

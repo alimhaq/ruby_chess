@@ -1,22 +1,44 @@
+require 'byebug'
 class Piece
-  def initialize(pos, board)
-    @moves = []
+  attr_reader :color
+  attr_accessor :pos
+  def initialize(pos = nil, color = nil, board)
     @pos = pos
     @board = board
+    @color = color
+    @moves = []
   end
 
   def moves
-    output_moves = []
+    return [] if self.is_a?(NullPiece)
     deltas = move_dirs
-    deltas.each do |delta|
-      if legal_move?
-        output_moves << [@pos[0] + delta[0], @pos[1] + delta[1]]
+    p deltas
+    @moves = []
+    deltas.each do |direction|
+      direction.each do |del|
+        # byebug
+        end_pos = [pos[0] + del[0], pos[1] + del[1]]
+        case valid_move(end_pos)
+        when -1, 0
+          next if self.is_a?(Knight)
+          break
+        when 1
+          @moves << end_pos
+          break unless self.is_a?(Knight)
+        when 2
+          @moves << end_pos
+        end
       end
     end
+    p @moves
+    @moves
   end
 
-  def legal_move?(end_pos)
-
+  def valid_move(end_pos)
+    return -1 unless end_pos.all? { |el| el.between?(0, 7) }
+    return 0 if @board[end_pos].color == self.color
+    return 1 unless @board[end_pos].color.nil?
+    return 2
   end
 end
 
@@ -24,20 +46,68 @@ end
 module SlidingPiece
   def move_dirs
     delta_arr = []
-    delta_arr << (-7..-1).to_a.zip(Array.new(7) {0}) if self.is_a?(Rook)
-    delta_arr << (1..7).to_a.zip(Array.new(7) {0}) if self.is_a?(Rook)
-    # delta_arr.concat((-7..7).to_a.zip(Array.new(15) {0})) if self.is_a?(Queen) || self.is_a?(Rook)
-    # delta_arr.concat(Array.new(15) {0}.zip((-7..7).to_a)) if self.is_a?(Queen) || self.is_a?(Rook)
-    delta_arr.concat((-7..7).to_a.zip((-7..7).to_a)) if self.is_a?(Queen) || self.is_a?(Bishop)
-    delta_arr.concat((-7..7).to_a.zip((7..-7).to_a)) if self.is_a?(Queen) || self.is_a?(Bishop)
+
+    # Vertical/Horizontal Movement
+    delta_arr << (-7..-1).to_a.reverse.zip(Array.new(7) {0}) if self.is_a?(Rook) || self.is_a?(Queen)
+    delta_arr << (1..7).to_a.zip(Array.new(7) {0}) if self.is_a?(Rook) || self.is_a?(Queen)
+    delta_arr << Array.new(7) {0}.zip((-7..-1).to_a.reverse) if self.is_a?(Rook) || self.is_a?(Queen)
+    delta_arr << Array.new(7) {0}.zip((1..7).to_a) if self.is_a?(Rook) || self.is_a?(Queen)
+
+    # Diagonals
+    delta_arr << (-7..-1).to_a.zip((-7..-1).to_a).reverse if self.is_a?(Bishop) || self.is_a?(Queen)
+    delta_arr << (1..7).to_a.zip((1..7).to_a) if self.is_a?(Bishop) || self.is_a?(Queen)
+    delta_arr << (-7..-1).to_a.zip((1..7).to_a.reverse).reverse if self.is_a?(Bishop) || self.is_a?(Queen)
+    delta_arr << (1..7).to_a.zip((-7..-1).to_a.reverse) if self.is_a?(Bishop) || self.is_a?(Queen)
+
+
+    delta_arr
   end
 end
 
 module SteppingPiece
 
+  def move_dirs
+    delta_arr = []
+    # Pawn
+    pawn_arr = []
+    pawn_arr << [-1, 0] if self.color == 'white' && self.is_a?(Pawn)
+    pawn_arr << [1, 0] if self.color == 'black'  && self.is_a?(Pawn)
+    pawn_arr << [-2, 0] if self.color == 'white' && self.pos[0] == 6 && self.is_a?(Pawn)
+    pawn_arr << [2, 0] if self.color == 'black' && self.pos[0] == 1 && self.is_a?(Pawn)
+    delta_arr << pawn_arr if self.is_a?(Pawn)
+
+    # Knight
+    delta_arr << [[1, 2], [1, -2], [-1, 2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]] if self.is_a?(Knight)
+
+    delta_arr
+  end
 end
 
 class NullPiece < Piece
   def initialize
   end
+end
+
+class Rook < Piece
+  include SlidingPiece
+end
+
+class Bishop < Piece
+  include SlidingPiece
+end
+
+class Queen < Piece
+  include SlidingPiece
+end
+
+class Knight < Piece
+  include SteppingPiece
+end
+
+class Pawn < Piece
+  include SteppingPiece
+end
+
+class King < Piece
+  include SteppingPiece
 end

@@ -1,7 +1,9 @@
 require_relative 'piece.rb'
 require_relative 'display.rb'
+require 'byebug'
 
 class Board
+  # debugger
   attr_reader :grid
   def initialize
     @grid = populate_board
@@ -12,10 +14,47 @@ class Board
     # rows 6 and 7 => black pieces
     @grid = Array.new(8) {Array.new(8)}
     (0..7).each do |row|
-      if row < 2 || row > 5
-        @grid[row] = Array.new(8) {Piece.new}
-      else
         @grid[row] = Array.new(8) {NullPiece.new}
+    end
+
+
+    (0..7).each do |row|
+      if row == 0
+        @grid[row][0] = Rook.new([row, 0], "black", self)
+        @grid[row][1] = Knight.new([row, 1], "black", self)
+        @grid[row][2] = Bishop.new([row, 2], "black", self)
+        @grid[row][3] = Queen.new([row, 3], "black", self)
+        @grid[row][4] = King.new([row, 4], "black", self)
+        @grid[row][5] = Bishop.new([row, 5], "black", self)
+        @grid[row][6] = Knight.new([row, 6], "black", self)
+        @grid[row][7] = Rook.new([row, 7], "black", self)
+      elsif row == 1
+        @grid[row][0] = Pawn.new([row, 0], "black", self)
+        @grid[row][1] = Pawn.new([row, 1], "black", self)
+        @grid[row][2] = Pawn.new([row, 2], "black", self)
+        @grid[row][3] = Pawn.new([row, 3], "black", self)
+        @grid[row][4] = Pawn.new([row, 4], "black", self)
+        @grid[row][5] = Pawn.new([row, 5], "black", self)
+        @grid[row][6] = Pawn.new([row, 6], "black", self)
+        @grid[row][7] = Pawn.new([row, 7], "black", self)
+      elsif row == 6
+        @grid[row][0] = Pawn.new([row, 0], "white", self)
+        @grid[row][1] = Pawn.new([row, 1], "white", self)
+        @grid[row][2] = Pawn.new([row, 2], "white", self)
+        @grid[row][3] = Pawn.new([row, 3], "white", self)
+        @grid[row][4] = Pawn.new([row, 4], "white", self)
+        @grid[row][5] = Pawn.new([row, 5], "white", self)
+        @grid[row][6] = Pawn.new([row, 6], "white", self)
+        @grid[row][7] = Pawn.new([row, 7], "white", self)
+      elsif row == 7
+        @grid[row][0] = Rook.new([row, 0], "white", self)
+        @grid[row][1] = Knight.new([row, 1], "white", self)
+        @grid[row][2] = Bishop.new([row, 2], "white", self)
+        @grid[row][3] = Queen.new([row, 3], "white", self)
+        @grid[row][4] = King.new([row, 4], "white", self)
+        @grid[row][5] = Bishop.new([row, 5], "white", self)
+        @grid[row][6] = Knight.new([row, 6], "white", self)
+        @grid[row][7] = Rook.new([row, 7], "white", self)
       end
     end
     @grid
