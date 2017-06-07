@@ -1,4 +1,5 @@
 require "io/console"
+require_relative 'display.rb'
 
 KEYMAP = {
   " " => :space,
@@ -32,7 +33,7 @@ MOVES = {
 
 class Cursor
 
-  attr_reader :cursor_pos, :board
+  attr_reader :cursor_pos, :board, :selected_piece
 
   def initialize(cursor_pos, board)
     @toggle = false
@@ -105,9 +106,18 @@ class Cursor
     if @selected_piece.empty?
       @selected_piece << board[@cursor_pos]
     elsif @selected_piece[0].moves.include?(@cursor_pos)
-      board[@selected_piece[0].pos] = NullPiece.new
+      board[@selected_piece[0].pos] = NullPiece.instance
+
+      unless board[@cursor_pos].is_a?(NullPiece)
+        key = board[@cursor_pos].class.to_s + board[@cursor_pos].color[0]
+        board.white_taken << PIECE_HASH[key] if board[@cursor_pos].color == 'black'
+        board.black_taken << PIECE_HASH[key] if board[@cursor_pos].color == 'white'
+      end
       board[@cursor_pos] = @selected_piece.pop
       board[@cursor_pos].pos = @cursor_pos.dup
+    else
+      @selected_piece.pop
+      nil
     end
   end
 end

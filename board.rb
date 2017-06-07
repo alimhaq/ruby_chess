@@ -4,9 +4,12 @@ require 'byebug'
 
 class Board
   # debugger
-  attr_reader :grid
+  attr_accessor :grid, :white_taken, :black_taken
   def initialize
+    @kings = []
     @grid = populate_board
+    @white_taken = []
+    @black_taken = []
   end
 
   def populate_board
@@ -14,44 +17,34 @@ class Board
     # rows 6 and 7 => black pieces
     @grid = Array.new(8) {Array.new(8)}
     (0..7).each do |row|
-        @grid[row] = Array.new(8) {NullPiece.new}
+        @grid[row] = Array.new(8) {NullPiece.instance}
     end
-
-
     (0..7).each do |row|
       if row == 0
         @grid[row][0] = Rook.new([row, 0], "black", self)
         @grid[row][1] = Knight.new([row, 1], "black", self)
         @grid[row][2] = Bishop.new([row, 2], "black", self)
         @grid[row][3] = Queen.new([row, 3], "black", self)
-        @grid[row][4] = King.new([row, 4], "black", self)
+        @kings << King.new([row, 4], "black", self)
+        @grid[row][4] = @kings[0]
         @grid[row][5] = Bishop.new([row, 5], "black", self)
         @grid[row][6] = Knight.new([row, 6], "black", self)
         @grid[row][7] = Rook.new([row, 7], "black", self)
       elsif row == 1
-        @grid[row][0] = Pawn.new([row, 0], "black", self)
-        @grid[row][1] = Pawn.new([row, 1], "black", self)
-        @grid[row][2] = Pawn.new([row, 2], "black", self)
-        @grid[row][3] = Pawn.new([row, 3], "black", self)
-        @grid[row][4] = Pawn.new([row, 4], "black", self)
-        @grid[row][5] = Pawn.new([row, 5], "black", self)
-        @grid[row][6] = Pawn.new([row, 6], "black", self)
-        @grid[row][7] = Pawn.new([row, 7], "black", self)
+        (0..7).each do |i|
+          @grid[row][i] = Pawn.new([row, i], "black", self)
+        end
       elsif row == 6
-        @grid[row][0] = Pawn.new([row, 0], "white", self)
-        @grid[row][1] = Pawn.new([row, 1], "white", self)
-        @grid[row][2] = Pawn.new([row, 2], "white", self)
-        @grid[row][3] = Pawn.new([row, 3], "white", self)
-        @grid[row][4] = Pawn.new([row, 4], "white", self)
-        @grid[row][5] = Pawn.new([row, 5], "white", self)
-        @grid[row][6] = Pawn.new([row, 6], "white", self)
-        @grid[row][7] = Pawn.new([row, 7], "white", self)
+        (0..7).each do |j|
+          @grid[row][j] = Pawn.new([row, j], "white", self)
+        end
       elsif row == 7
         @grid[row][0] = Rook.new([row, 0], "white", self)
         @grid[row][1] = Knight.new([row, 1], "white", self)
         @grid[row][2] = Bishop.new([row, 2], "white", self)
         @grid[row][3] = Queen.new([row, 3], "white", self)
-        @grid[row][4] = King.new([row, 4], "white", self)
+        @kings << King.new([row, 4], "white", self)
+        @grid[row][4] = @kings[1]
         @grid[row][5] = Bishop.new([row, 5], "white", self)
         @grid[row][6] = Knight.new([row, 6], "white", self)
         @grid[row][7] = Rook.new([row, 7], "white", self)
@@ -92,6 +85,34 @@ class Board
     pos.all? {|el| el.between?(0, 7)}
   end
 
+  def in_check?(color)
+    potential_checks = []
+    if color == "black"
+      (0..7).each do |row|
+        (0..7).each do |col|
+          potential_checks.concat(@grid[row][col].moves) if @grid[row][col].color == "white"
+        end
+      end
+      return true if potential_checks.include?(@kings[0].pos)
+    else
+      (0..7).each do |row|
+        (0..7).each do |col|
+          potential_checks.concat(@grid[row][col].moves) if @grid[row][col].color == "black"
+        end
+      end
+      return true if potential_checks.include?(@kings[1].pos)
+    end
+    false
+  end
+
+  def checkmate?(color)
+    if color == "black"
+      in_check?(color) && @kings[0].moves.empty?
+    else
+      in_check?(color) && @kings[1].moves.empty?
+    end
+  end
+
 end
 
 if __FILE__ == $PROGRAM_NAME
@@ -101,6 +122,7 @@ if __FILE__ == $PROGRAM_NAME
     system 'clear'
     disp.render
     disp.cursor.get_input
+    break if brd.checkmate?("white")
     # disp.render
     # 1
   end

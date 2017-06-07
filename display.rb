@@ -1,5 +1,6 @@
 require 'colorize'
 require_relative 'cursor.rb'
+require_relative 'game.rb'
 
 PIECE_HASH = {
   "Rookw" => "\u2656",
@@ -30,11 +31,13 @@ class Display
   def render
     # MAP THE TOP LABELS TO LETTERS
     # puts @cursor.cursor_pos
-    print "   0  1  2  3  4  5  6  7\n"
+    print "   A  B  C  D  E  F  G  H\n"
     @board.grid.each_with_index do |row, i|
       print "#{i}  "
       row.each_with_index do |piece, j|
         key = piece.class.to_s + piece.color[0] unless piece.is_a?(NullPiece)
+        # if @moves.include?([i, j])
+        #
         if [i,j] == @cursor.cursor_pos
           if piece.is_a?(NullPiece)
             (print "-".colorize(:color => :white, :background => :black) + "  ")
@@ -42,10 +45,21 @@ class Display
             (print PIECE_HASH[key].colorize(:color => :white, :background => :black) + "  ")
           end
         else
-          piece.is_a?(NullPiece) ? (print "-  ") : (print "#{PIECE_HASH[key]}  ")
+          unless @cursor.selected_piece.empty?
+            if @cursor.selected_piece[0].moves != nil && @cursor.selected_piece[0].moves.include?([i, j])
+              piece.is_a?(NullPiece) ? (print ("-").colorize(:background => :green) + "  ") : (print ("#{PIECE_HASH[key]}").colorize(:background => :green) + "  ")
+            else
+              piece.is_a?(NullPiece) ? (print "-  ") : (print "#{PIECE_HASH[key]}  ")
+            end
+          else
+            piece.is_a?(NullPiece) ? (print "-  ") : (print "#{PIECE_HASH[key]}  ")
+          end
         end
       end
       puts
     end
+    puts "\u23E4" * 25
+    puts "#{board.white_taken}"
+    p board.black_taken
   end
 end

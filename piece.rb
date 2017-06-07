@@ -1,6 +1,8 @@
 require 'byebug'
+require 'singleton'
+
 class Piece
-  attr_reader :color
+  attr_reader :color, :moves
   attr_accessor :pos
   def initialize(pos = nil, color = nil, board)
     @pos = pos
@@ -12,25 +14,24 @@ class Piece
   def moves
     return [] if self.is_a?(NullPiece)
     deltas = move_dirs
-    p deltas
     @moves = []
     deltas.each do |direction|
       direction.each do |del|
-        # byebug
         end_pos = [pos[0] + del[0], pos[1] + del[1]]
         case valid_move(end_pos)
         when -1, 0
-          next if self.is_a?(Knight)
+          next if self.is_a?(Knight) || self.is_a?(King)
           break
         when 1
           @moves << end_pos
-          break unless self.is_a?(Knight)
+          break unless self.is_a?(Knight) || self.is_a?(King)
         when 2
+          next
+        when 3
           @moves << end_pos
         end
       end
     end
-    p @moves
     @moves
   end
 
@@ -38,8 +39,16 @@ class Piece
     return -1 unless end_pos.all? { |el| el.between?(0, 7) }
     return 0 if @board[end_pos].color == self.color
     return 1 unless @board[end_pos].color.nil?
-    return 2
+    # return 2 if king_checked?(self.color) && player?
+    return 3
   end
+
+  # def king_checked?(color)
+  #   @board[self.pos] = NullPiece.instance
+  #   answer = @board.in_check?(color)
+  #   @board[self.pos] = self
+  #   answer
+  # end
 end
 
 
@@ -79,11 +88,14 @@ module SteppingPiece
     # Knight
     delta_arr << [[1, 2], [1, -2], [-1, 2], [-1, -2], [2, 1], [2, -1], [-2, 1], [-2, -1]] if self.is_a?(Knight)
 
+    # King
+    delta_arr << [[1, 0], [1, 1], [1, -1], [0, 1], [0, -1], [-1, 1], [-1, 0], [-1, -1]] if self.is_a?(King)
     delta_arr
   end
 end
 
 class NullPiece < Piece
+  include Singleton
   def initialize
   end
 end
